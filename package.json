@@ -2,13 +2,13 @@
   "name": "svelte-app",
   "version": "1.0.0",
   "private": true,
+  "homepage": "https://github.com/brybrycha/Crash_Camden_UK.git",
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "start": "sirv public -D -m 1",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build -t true",
-    "homepage": "https://github.com/brybrycha/Crash_Camden_UK.git"
+    "deploy": "gh-pages -d build -t true"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.0.0",
