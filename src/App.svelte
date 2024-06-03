@@ -6,7 +6,7 @@
   import PieChart from "./Components/PieChart.svelte";
   import GenderPie from "./Components/GenderPie.svelte";
   import Map from "./Components/Map.svelte";
-  import MapDayNight from "./Components/MapDayNight.svelte"
+  import MapDayNight from "./Components/MapDayNight.svelte";
   import Conclusion from "./Components/Conclusion.svelte";
   import Resources from "./Components/Resources.svelte";
   import ScrollSide from "./Components/ScrollSide.svelte";
@@ -14,7 +14,6 @@
 
   import { onMount } from 'svelte';
   import * as d3 from 'd3';
-
 
   let accidentData = [];
   let selectedYearRange = [2014, 2015];
@@ -36,7 +35,7 @@
       } else {
         d.accidentYear = null;
       }
-// Clean 'Time' column
+      // Clean 'Time' column
       d.Time = d.Time ? parseFloat(d.Time.replace(':', '.')) : null;
 
       // Clean 'Driver Sex' column
@@ -54,6 +53,7 @@
       }
     });
   }
+
   function updatePieChartData() {
     const filteredData = accidentData.filter(d => {
       return d.accidentYear >= selectedYearRange[0] && d.accidentYear <= selectedYearRange[1];
@@ -77,25 +77,30 @@
       { label: 'Non Traced', value: nonCount },
     ];
   }
-onMount(() => {
+
+  onMount(() => {
     fetchAccidentData();
   });
 
   $: updatePieChartData(); 
 </script>
 
+<style>
+  .container {
+    width: 80%;
+    margin: 0 auto;
+  }
+</style>
+
 <Meta />
 <Title />
 <Intro />
 <MapDayNight /> 
 
-<!-- <Intro /> -->
+<div class="container">
+  <Map />
+</div>
 
-<Map />
-
-<BarChart/>
-
-
+<BarChart />
 <!-- <Conclusion /> -->
-
 <!-- <Resources /> -->

@@ -22647,6 +22647,7 @@ var app = (function () {
     	let t2;
     	let mapdaynight;
     	let t3;
+    	let div;
     	let map;
     	let t4;
     	let barchart;
@@ -22668,9 +22669,11 @@ var app = (function () {
     			t2 = space();
     			create_component(mapdaynight.$$.fragment);
     			t3 = space();
+    			div = element("div");
     			create_component(map.$$.fragment);
     			t4 = space();
     			create_component(barchart.$$.fragment);
+    			attr(div, "class", "container svelte-199n8no");
     		},
     		m(target, anchor) {
     			mount_component(meta, target, anchor);
@@ -22681,7 +22684,8 @@ var app = (function () {
     			insert(target, t2, anchor);
     			mount_component(mapdaynight, target, anchor);
     			insert(target, t3, anchor);
-    			mount_component(map, target, anchor);
+    			insert(target, div, anchor);
+    			mount_component(map, div, null);
     			insert(target, t4, anchor);
     			mount_component(barchart, target, anchor);
     			current = true;
@@ -22715,7 +22719,8 @@ var app = (function () {
     			if (detaching) detach(t2);
     			destroy_component(mapdaynight, detaching);
     			if (detaching) detach(t3);
-    			destroy_component(map, detaching);
+    			if (detaching) detach(div);
+    			destroy_component(map);
     			if (detaching) detach(t4);
     			destroy_component(barchart, detaching);
     		}
