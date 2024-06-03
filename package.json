@@ -7,7 +7,8 @@
     "dev": "rollup -c -w",
     "start": "sirv public -D -m 1",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d public -t true"
+    "deploy": "gh-pages -d build -t true",
+    "homepage": "https://github.com/brybrycha/Crash_Camden_UK.git"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.0.0",
@@ -35,6 +36,7 @@
     "sirv-cli": "^1.0.0",
     "smoothscroll-polyfill": "^0.4.4",
     "stickyfill": "^1.1.1-strict",
-    "svelte-preprocess": "^4.6.9"
+    "svelte-preprocess": "^4.6.9",
+    "vite-plugin-static-copy": "^1.0.5"
   }
 }
