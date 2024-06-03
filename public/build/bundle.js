@@ -22182,7 +22182,7 @@ var app = (function () {
 
     		map.once('styledata', () => {
     			updateAccidentData();
-    			selectAll("circle").transition().duration(1000).attr("r", d => scaleRadiusTrafficVolume(d));
+    			selectAll("circle").attr("r", d => scaleRadiusTrafficVolume(d));
     		});
     	}
 
@@ -22192,7 +22192,7 @@ var app = (function () {
 
     		map.once('styledata', () => {
     			updateAccidentData();
-    			selectAll("circle").transition().duration(1000).attr("r", d => scaleRadiusTrafficVolume(d));
+    			selectAll("circle").attr("r", d => scaleRadiusTrafficVolume(d));
     		});
     	}
 

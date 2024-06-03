@@ -106,27 +106,6 @@
     return accidents;
   }
 
-  function createAccidentGeoJson(accidentLocations) {
-    const features = Object.keys(accidentLocations).map(key => {
-      const [lat, lng] = key.split(',').map(Number);
-      return {
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: [lng, lat]
-        },
-        properties: {
-          accidents: accidentLocations[key].count
-        }
-      };
-    });
-
-    return {
-      type: "FeatureCollection",
-      features: features
-    };
-  }
-
   function updateAccidentClusters() {
     const zoom = map.getZoom();
     const clusterRadius = 0.00002 * Math.pow(2, 20 - zoom);
@@ -190,6 +169,27 @@
     updateVisibleAccidents(); // Ensure the initial count is correct
   }
 
+  function createAccidentGeoJson(accidentLocations) {
+    const features = Object.keys(accidentLocations).map(key => {
+      const [lat, lng] = key.split(',').map(Number);
+      return {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [lng, lat]
+        },
+        properties: {
+          accidents: accidentLocations[key].count
+        }
+      };
+    });
+
+    return {
+      type: "FeatureCollection",
+      features: features
+    };
+  }
+
   function createStationMarkers(stationData) {
     stationMarkers = d3.select("svg")
       .selectAll("circle")
@@ -227,10 +227,7 @@
     map.setStyle(getStyleBasedOnTime(isDaytime));
     map.once('styledata', () => {
       updateAccidentData();
-      d3.selectAll("circle")
-        .transition()
-        .duration(1000)
-        .attr("r", d => scaleRadiusTrafficVolume(d));
+      d3.selectAll("circle").attr("r", d => scaleRadiusTrafficVolume(d));
     });
   }
 
@@ -239,10 +236,7 @@
     map.setStyle(getStyleBasedOnTime(isDaytime));
     map.once('styledata', () => {
       updateAccidentData();
-      d3.selectAll("circle")
-        .transition()
-        .duration(1000)
-        .attr("r", d => scaleRadiusTrafficVolume(d));
+      d3.selectAll("circle").attr("r", d => scaleRadiusTrafficVolume(d));
     });
   }
 
