@@ -22035,20 +22035,6 @@ var app = (function () {
     			});
 
     		map.on("load", async () => {
-    			const geojsonData = await fetch('/export.geojson').then(response => response.json());
-    			map.addSource("camden_roads", { type: "geojson", data: geojsonData });
-
-    			// Add the road lines first
-    			map.addLayer({
-    				id: "camden_roads",
-    				type: "line",
-    				source: "camden_roads",
-    				paint: {
-    					"line-color": "#ADD8E6", // Light blue color for the roads
-    					"line-width": 2
-    				}
-    			});
-
     			accidentData = await csv("https://raw.githubusercontent.com/brybrycha/crash/main/public/Road_Collision_Vehicles_In_Camden.csv");
     			await fetch(stationsFile).then(response => response.json()).then(d => stationData = d.data.stations);
     			updateAccidentData();
