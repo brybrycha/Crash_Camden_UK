@@ -25,7 +25,12 @@
     });
 
     map.on("load", async () => {
+      const geojsonData = await fetch('/export.geojson').then(response => response.json());
 
+      map.addSource("camden_roads", {
+        type: "geojson",
+        data: geojsonData,
+      });
 
       // Add the road lines first
       map.addLayer({
@@ -38,7 +43,7 @@
         },
       });
 
-      accidentData = await csv(accident);
+      accidentData = await csv("https://raw.githubusercontent.com/brybrycha/crash/main/public/Road_Collision_Vehicles_In_Camden.csv");
 
       console.log(accidentData)
 
