@@ -2,7 +2,6 @@
   import { onMount } from "svelte";
   import * as d3 from "d3";
   import { csv } from "d3-fetch";
-  import mapboxgl from 'mapbox-gl';
 
   let map;
   let accidentData = [];
@@ -43,7 +42,7 @@
         },
       });
 
-      accidentData = await csv('/student_data.csv'); // Use the copied file
+      accidentData = await csv("https://raw.githubusercontent.com/brybrycha/crash/main/public/Road_Collision_Vehicles_In_Camden.csv");
 
       await fetch(stationsFile)
         .then((response) => response.json())
@@ -333,4 +332,3 @@
   <button on:click={toggleDaytime}>Daytime</button>
   <button on:click={toggleNighttime}>Nighttime</button>
 </div>
-
