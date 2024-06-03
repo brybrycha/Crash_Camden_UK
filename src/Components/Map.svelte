@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import * as d3 from "d3";
   import { csv } from "d3-fetch";
+  import { accident } from "/Users/bryancha/Documents/Crash_Camden_UK/student_data.csv";
 
   let map;
   let accidentData = [];
@@ -24,12 +25,7 @@
     });
 
     map.on("load", async () => {
-      const geojsonData = await fetch('/export.geojson').then(response => response.json());
 
-      map.addSource("camden_roads", {
-        type: "geojson",
-        data: geojsonData,
-      });
 
       // Add the road lines first
       map.addLayer({
@@ -42,7 +38,9 @@
         },
       });
 
-      accidentData = await csv("https://raw.githubusercontent.com/brybrycha/crash/main/public/Road_Collision_Vehicles_In_Camden.csv");
+      accidentData = await csv(accident);
+
+      console.log(accidentData)
 
       await fetch(stationsFile)
         .then((response) => response.json())
