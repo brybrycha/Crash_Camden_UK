@@ -125,7 +125,7 @@
 <style>
   #line-graph-container {
     width: 100%;
-    height: 100vh;
+    height: 80%;
     position: relative;
   }
   svg {

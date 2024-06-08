@@ -19847,53 +19847,6 @@ var app = (function () {
       return linearish(scale);
     }
 
-    function transformPow(exponent) {
-      return function(x) {
-        return x < 0 ? -Math.pow(-x, exponent) : Math.pow(x, exponent);
-      };
-    }
-
-    function transformSqrt(x) {
-      return x < 0 ? -Math.sqrt(-x) : Math.sqrt(x);
-    }
-
-    function transformSquare(x) {
-      return x < 0 ? -x * x : x * x;
-    }
-
-    function powish(transform) {
-      var scale = transform(identity, identity),
-          exponent = 1;
-
-      function rescale() {
-        return exponent === 1 ? transform(identity, identity)
-            : exponent === 0.5 ? transform(transformSqrt, transformSquare)
-            : transform(transformPow(exponent), transformPow(1 / exponent));
-      }
-
-      scale.exponent = function(_) {
-        return arguments.length ? (exponent = +_, rescale()) : exponent;
-      };
-
-      return linearish(scale);
-    }
-
-    function pow() {
-      var scale = powish(transformer());
-
-      scale.copy = function() {
-        return copy(scale, pow()).exponent(scale.exponent());
-      };
-
-      initRange.apply(scale, arguments);
-
-      return scale;
-    }
-
-    function sqrt() {
-      return pow.apply(null, arguments).exponent(0.5);
-    }
-
     const t0 = new Date, t1 = new Date;
 
     function timeInterval(floori, offseti, count, field) {
@@ -21733,12 +21686,6 @@ var app = (function () {
           : new Selection([[selector]], root);
     }
 
-    function selectAll(selector) {
-      return typeof selector === "string"
-          ? new Selection([document.querySelectorAll(selector)], [document.documentElement])
-          : new Selection([array$1(selector)], root);
-    }
-
     function constant(x) {
       return function constant() {
         return x;
@@ -21991,8 +21938,6 @@ var app = (function () {
     	};
     }
 
-    const stationsFile = "https://raw.githubusercontent.com/dsc-courses/dsc106-wi24/gh-pages/resources/data/lab6_station_info.json";
-
     function getStyleBasedOnTime(isDaytime) {
     	return isDaytime
     	? "mapbox://styles/mapbox/light-v11"
@@ -22017,8 +21962,6 @@ var app = (function () {
     	let map;
     	let accidentData = [];
     	let accidentLocations = {};
-    	let stationData = [];
-    	let stationMarkers;
     	let isDaytime = true;
     	let totalAccidents = 0;
 
@@ -22035,12 +21978,13 @@ var app = (function () {
     			});
 
     		map.on("load", async () => {
-    			accidentData = await csv("https://raw.githubusercontent.com/brybrycha/crash/main/public/Road_Collision_Vehicles_In_Camden.csv");
-    			await fetch(stationsFile).then(response => response.json()).then(d => stationData = d.data.stations);
+    			accidentData = await csv("https://raw.githubusercontent.com/brybrycha/Crash_Camden_UK/main/public/Cleaned_Road_Collision_Vehicles_In_Camden.csv");
     			updateAccidentData();
 
-    			// Initial clustering of accidents
-    			updateAccidentClusters();
+    			// Update visible accidents initially after data has been added to the map
+    			map.once('idle', () => {
+    				updateVisibleAccidents();
+    			});
 
     			map.on('zoomend', () => {
     				updateAccidentClusters();
@@ -22048,14 +21992,6 @@ var app = (function () {
     			});
 
     			map.on('moveend', updateVisibleAccidents);
-
-    			// Create SVG container for station markers
-    			select(map.getCanvasContainer()).append("svg").attr("width", "100%").attr("height", "100%").style("position", "absolute").style("z-index", 2); // Ensure SVG is on top
-
-    			createStationMarkers(stationData);
-    			map.on('viewreset', positionStationMarkers);
-    			map.on('move', positionStationMarkers);
-    			map.on('moveend', positionStationMarkers);
 
     			// Tooltip
     			const tooltip = new mapboxgl.Popup({ closeButton: false, closeOnClick: false });
@@ -22071,8 +22007,6 @@ var app = (function () {
     				map.getCanvas().style.cursor = '';
     				tooltip.remove();
     			});
-
-    			updateVisibleAccidents();
     		});
     	});
 
@@ -22080,7 +22014,7 @@ var app = (function () {
     		const accidents = {};
 
     		data.forEach(d => {
-    			const accidentTime = new Date(d.Date).getHours() + new Date(d.Date).getMinutes() / 60;
+    			const accidentTime = parseFloat(d.Time);
     			const isDayAccident = accidentTime >= 6 && accidentTime < 18;
 
     			if (isDaytime && isDayAccident || !isDaytime && !isDayAccident) {
@@ -22146,34 +22080,12 @@ var app = (function () {
     				}
     			});
     		}
-
-    		updateVisibleAccidents();
     	}
 
     	function updateAccidentData() {
     		accidentLocations = processAccidentData(accidentData);
     		updateAccidentClusters();
-    		updateVisibleAccidents(); // Ensure the initial count is correct
-    	}
-
-    	function createStationMarkers(stationData) {
-    		stationMarkers = select("svg").selectAll("circle").data(stationData).enter().append("circle").attr("r", 5).style("fill", "#808080").attr("stroke", "#808080").attr("stroke-width", 1).attr("fill-opacity", 0.4).attr("name", function (d) {
-    			return d["name"];
-    		});
-
-    		positionStationMarkers();
-    	}
-
-    	function positionStationMarkers() {
-    		stationMarkers.attr("cx", function (d) {
-    			return project(d).x;
-    		}).attr("cy", function (d) {
-    			return project(d).y;
-    		});
-    	}
-
-    	function project(d) {
-    		return map.project(new mapboxgl.LngLat(+d.lon, +d.lat));
+    		updateVisibleAccidents(); // Ensure accident count is updated
     	}
 
     	function toggleDaytime() {
@@ -22182,7 +22094,7 @@ var app = (function () {
 
     		map.once('styledata', () => {
     			updateAccidentData();
-    			selectAll("circle").attr("r", d => scaleRadiusTrafficVolume(d));
+    			map.once('idle', updateVisibleAccidents); // Ensure count updates after style change
     		});
     	}
 
@@ -22192,13 +22104,8 @@ var app = (function () {
 
     		map.once('styledata', () => {
     			updateAccidentData();
-    			selectAll("circle").attr("r", d => scaleRadiusTrafficVolume(d));
+    			map.once('idle', updateVisibleAccidents); // Ensure count updates after style change
     		});
-    	}
-
-    	function scaleRadiusTrafficVolume(traffic) {
-    		const scaleRadius = sqrt().domain([0, 1, 20]).range([0, 5, 15]);
-    		return scaleRadius(traffic);
     	}
 
     	function updateVisibleAccidents() {
@@ -22334,9 +22241,9 @@ var app = (function () {
     			div1 = element("div");
     			svg = svg_element("svg");
     			attr(div0, "class", "hero");
-    			attr(svg, "class", "svelte-pr2knx");
+    			attr(svg, "class", "svelte-5pf7z");
     			attr(div1, "id", "line-graph-container");
-    			attr(div1, "class", "svelte-pr2knx");
+    			attr(div1, "class", "svelte-5pf7z");
     			attr(div2, "class", "sticky");
     			attr(div3, "class", "section-container");
     		},

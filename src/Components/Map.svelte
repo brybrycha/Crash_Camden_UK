@@ -6,11 +6,8 @@
   let map;
   let accidentData = [];
   let accidentLocations = {};
-  let stationData = [];
-  let stationMarkers;
   let isDaytime = true;
   let totalAccidents = 0;
-  const stationsFile = "https://raw.githubusercontent.com/dsc-courses/dsc106-wi24/gh-pages/resources/data/lab6_station_info.json";
 
   onMount(async () => {
     mapboxgl.accessToken = "pk.eyJ1IjoiYnJjaGEiLCJhIjoiY2x3bGFxcDRlMW5wODJzb2N0eHFmM2FjeCJ9.Q47OaoGh6RIGs5d54fPiqw";
@@ -24,16 +21,14 @@
     });
 
     map.on("load", async () => {
-      accidentData = await csv("https://raw.githubusercontent.com/brybrycha/crash/main/public/Road_Collision_Vehicles_In_Camden.csv");
-
-      await fetch(stationsFile)
-        .then((response) => response.json())
-        .then((d) => stationData = d.data.stations);
+      accidentData = await csv("https://raw.githubusercontent.com/brybrycha/Crash_Camden_UK/main/public/Cleaned_Road_Collision_Vehicles_In_Camden.csv");
 
       updateAccidentData();
-
-      // Initial clustering of accidents
-      updateAccidentClusters();
+      
+      // Update visible accidents initially after data has been added to the map
+      map.once('idle', () => {
+        updateVisibleAccidents();
+      });
 
       map.on('zoomend', () => {
         updateAccidentClusters();
@@ -41,20 +36,6 @@
       });
 
       map.on('moveend', updateVisibleAccidents);
-
-      // Create SVG container for station markers
-      const markerContainer = d3.select(map.getCanvasContainer())
-        .append("svg")
-        .attr("width", "100%")
-        .attr("height", "100%")
-        .style("position", "absolute")
-        .style("z-index", 2); // Ensure SVG is on top
-
-      createStationMarkers(stationData);
-
-      map.on('viewreset', positionStationMarkers);
-      map.on('move', positionStationMarkers);
-      map.on('moveend', positionStationMarkers);
 
       // Tooltip
       const tooltip = new mapboxgl.Popup({
@@ -78,8 +59,6 @@
         map.getCanvas().style.cursor = '';
         tooltip.remove();
       });
-
-      updateVisibleAccidents();
     });
   });
 
@@ -92,7 +71,7 @@
   function processAccidentData(data) {
     const accidents = {};
     data.forEach(d => {
-      const accidentTime = new Date(d.Date).getHours() + new Date(d.Date).getMinutes() / 60;
+      const accidentTime = parseFloat(d.Time);
       const isDayAccident = accidentTime >= 6 && accidentTime < 18;
       if ((isDaytime && isDayAccident) || (!isDaytime && !isDayAccident)) {
         const key = `${d.Latitude},${d.Longitude}`;
@@ -159,14 +138,12 @@
         }
       });
     }
-
-    updateVisibleAccidents();
   }
 
   function updateAccidentData() {
     accidentLocations = processAccidentData(accidentData);
     updateAccidentClusters();
-    updateVisibleAccidents(); // Ensure the initial count is correct
+    updateVisibleAccidents(); // Ensure accident count is updated
   }
 
   function createAccidentGeoJson(accidentLocations) {
@@ -190,44 +167,12 @@
     };
   }
 
-  function createStationMarkers(stationData) {
-    stationMarkers = d3.select("svg")
-      .selectAll("circle")
-      .data(stationData)
-      .enter()
-      .append("circle")
-      .attr("r", 5)
-      .style("fill", "#808080")
-      .attr("stroke", "#808080")
-      .attr("stroke-width", 1)
-      .attr("fill-opacity", 0.4)
-      .attr("name", function (d) {
-        return d["name"];
-      });
-
-    positionStationMarkers();
-  }
-
-  function positionStationMarkers() {
-    stationMarkers
-      .attr("cx", function (d) {
-        return project(d).x;
-      })
-      .attr("cy", function (d) {
-        return project(d).y;
-      });
-  }
-
-  function project(d) {
-    return map.project(new mapboxgl.LngLat(+d.lon, +d.lat));
-  }
-
   function toggleDaytime() {
     isDaytime = true;
     map.setStyle(getStyleBasedOnTime(isDaytime));
     map.once('styledata', () => {
       updateAccidentData();
-      d3.selectAll("circle").attr("r", d => scaleRadiusTrafficVolume(d));
+      map.once('idle', updateVisibleAccidents);  // Ensure count updates after style change
     });
   }
 
@@ -236,15 +181,8 @@
     map.setStyle(getStyleBasedOnTime(isDaytime));
     map.once('styledata', () => {
       updateAccidentData();
-      d3.selectAll("circle").attr("r", d => scaleRadiusTrafficVolume(d));
+      map.once('idle', updateVisibleAccidents);  // Ensure count updates after style change
     });
-  }
-
-  function scaleRadiusTrafficVolume(traffic) {
-    const scaleRadius = d3.scaleSqrt()
-      .domain([0, 1, 20])
-      .range([0, 5, 15]);
-    return scaleRadius(traffic);
   }
 
   function updateVisibleAccidents() {
